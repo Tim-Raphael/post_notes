@@ -32,14 +32,6 @@ jobs:
           cp -r assets release_bundle/
           tar -czf post_notes_bundle.tar.gz -C release_bundle .
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Upload release bundle
         uses: softprops/action-gh-release@v2
         with:

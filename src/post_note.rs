@@ -226,12 +226,6 @@ impl PostNoteEntry {
     }
 
     // This is probably going to be a temporary solution.
-    //
-    // The underling issue is that obsidian uses non-standard wikilinks for all media. This cant be
-    // parsed. Thats why we preprocess these link so we can still use these nice obsidian features
-    // without compromising image links.
-    //
-    // This does need to be resolved in another way down the line.
     fn pre_process_media_wikilinks(raw_md: &str) -> Result<(Cow<'_, str>, Vec<MediaLink>)> {
         let re = Regex::new(r"!\[\[(media/[^|\]]+)(?:\|([^\[\]]+))?\]\]")?;
         let mut media_links = Vec::new();
