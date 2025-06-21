@@ -67,8 +67,12 @@
 
             {{ note.html_content | safe }}
         </article>
+
         {% include "partials/search.html" %}
+        {% include "partials/controls.html" %}
     </main>
+
+    {% include "partials/footer.html" %}
 </body>
 
 </html>
