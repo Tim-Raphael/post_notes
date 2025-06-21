@@ -205,10 +205,6 @@ impl PostNoteEntry {
                     links.push(internal_link);
                 }
 
-                NodeValue::Image(image) => {
-                    dbg!(&image);
-                }
-
                 _ => {}
             }
         }

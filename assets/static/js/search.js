@@ -1,3 +1,4 @@
+import Module from "./module.js";
 import { moduleRegistry } from "./registry.js";
 
 class NormalizedDistance {
@@ -149,7 +150,7 @@ function escapeHandler(event, container) {
 function initSearch(map, input, output, preview, container) {
     const contentMap = new ContentMap(map);
 
-    moduleRegistry.bind("/", () => {
+    moduleRegistry.bindTap("/", () => {
         container.classList.add("active");
         input.focus();
 
@@ -182,9 +183,11 @@ function initSearch(map, input, output, preview, container) {
         const container = document.getElementById("search-container");
         if (!container) throw new Error("Missing element #search-contianer");
 
-        moduleRegistry.register("search")
+        const searchModule = new Module("SEARCH", () => {
+            initSearch(map, input, output, preview, container);
+        });
 
-        initSearch(map, input, output, preview, container);
+        moduleRegistry.register(searchModule);
     } catch (error) {
         console.error("Something went wrong while mounting the Search module:", error);
     }
