@@ -28,6 +28,7 @@ jobs:
       - name: Bundle binary with assets
         run: |
           mkdir -p release_bundle
+          git submodule update --recursive --remote
           cp target/release/post_notes release_bundle/
           cp -r assets release_bundle/
           tar -czf post_notes_bundle.tar.gz -C release_bundle .
@@ -40,7 +41,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build docs
-        run: cargo doc --no-deps --release
+        run: |
+          cargo doc --no-deps --release
+          echo "<meta http-equiv=\"refresh\" content=\"0; url=build_wheel\">" > target/doc/index.html
 
       - name: Deploy docs to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
