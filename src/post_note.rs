@@ -1,7 +1,6 @@
 use anyhow::{Context, Result};
 use comrak::nodes::NodeValue;
 use comrak::{Arena, Options, format_html, parse_document};
-use log::warn;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
@@ -167,7 +166,7 @@ impl PostNoteEntry {
         let (pre_processed_raw_md, media) = match Self::pre_process_media_wikilinks(raw_md) {
             Ok((md, media)) => (md, media),
             Err(err) => {
-                warn!("Could not pre-process media wikilinks: {}", err);
+                log::warn!("Could not pre-process media wikilinks: {}", err);
                 (Cow::from(raw_md), Vec::new())
             }
         };
