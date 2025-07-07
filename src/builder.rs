@@ -5,6 +5,7 @@ use std::{fs, io};
 use serde_json::json;
 use tera::{Context, Tera};
 
+use crate::Args;
 use crate::content_map::ContentMap;
 use crate::navigation::Navigation;
 use crate::post_note::PostNote;
@@ -24,16 +25,13 @@ impl Builder {
         notes: Vec<PostNote>,
         content_map: ContentMap,
         navigation: Navigation,
-        content_location: &str,
-        output_location: &str,
-        template_location: &str,
-        static_location: &str,
+        args: &Args,
     ) -> anyhow::Result<Self> {
-        let tera = Tera::new(&format!("{}/**/*.html", template_location))?;
+        let tera = Tera::new(&format!("{}/**/*.html", &args.template_folder))?;
 
-        let content_path = PathBuf::from(content_location);
-        let output_path = PathBuf::from(output_location);
-        let static_path = PathBuf::from(static_location);
+        let content_path = PathBuf::from(&args.content_folder);
+        let output_path = PathBuf::from(&args.output_folder);
+        let static_path = PathBuf::from(&args.static_folder);
 
         Ok(Self {
             notes,
