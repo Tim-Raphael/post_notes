@@ -21,7 +21,7 @@ impl Hash for TagNode {
 impl Default for TagNode {
     fn default() -> Self {
         TagNode {
-            tag: Tag::from("~/"),
+            tag: Tag::from("#"),
             child_tags: HashMap::new(),
             files: HashSet::new(),
         }
@@ -33,8 +33,8 @@ pub struct Navigation {
     pub root: TagNode,
 }
 
-impl From<&Vec<PostNote>> for Navigation {
-    fn from(notes: &Vec<PostNote>) -> Self {
+impl From<&Vec<Box<PostNote>>> for Navigation {
+    fn from(notes: &Vec<Box<PostNote>>) -> Self {
         let mut root = TagNode::default();
 
         for note in notes {

@@ -4,31 +4,31 @@ use std::collections::HashMap;
 use crate::post_note::{InternalLink, PostNote, Properties, Tag};
 
 #[derive(Debug, Clone, Serialize)]
-struct SearchProperties {
-    tags: Vec<Tag>,
-    title: String,
-    description: String,
+struct SearchProperties<'a> {
+    tags: &'a Vec<Tag>,
+    title: &'a str,
+    description: &'a str,
 }
 
-impl From<Properties> for SearchProperties {
-    fn from(props: Properties) -> Self {
+impl<'a> From<&'a Properties> for SearchProperties<'a> {
+    fn from(props: &'a Properties) -> Self {
         Self {
-            tags: props.tags,
-            title: props.title,
-            description: props.description,
+            tags: &props.tags,
+            title: &props.title,
+            description: &props.description,
         }
     }
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub struct ContentMap(HashMap<InternalLink, SearchProperties>);
+pub struct ContentMap<'a>(HashMap<&'a InternalLink, SearchProperties<'a>>);
 
-impl From<&Vec<PostNote>> for ContentMap {
-    fn from(post_notes: &Vec<PostNote>) -> Self {
+impl<'a> From<&'a Vec<Box<PostNote>>> for ContentMap<'a> {
+    fn from(post_notes: &'a Vec<Box<PostNote>>) -> Self {
         let mut search_props = HashMap::new();
 
         for note in post_notes.iter() {
-            search_props.insert(note.file_name.clone(), note.properties.clone().into());
+            search_props.insert(&note.file_name, SearchProperties::from(&note.properties));
             log::info!("Generated map entries for {}", note.file_name.to_string());
         }
 

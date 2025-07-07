@@ -1,6 +1,5 @@
 use anyhow::{Context, Result};
 use rayon::prelude::*;
-use std::env::args;
 use std::fs;
 
 mod builder;
@@ -13,10 +12,10 @@ use content_map::ContentMap;
 use navigation::Navigation;
 use post_note::{PostNote, PostNoteEntry};
 
-const DEFAULT_CONTENT_FOLDER_LOCATION: &str = "../notes";
-const DEFAULT_OUTPUT_FOLDER_LOCATION: &str = "./output/";
-const DEFAULT_TEMPLATE_FOLDER_LOCATION: &str = "./assets/templates";
-const DEFAULT_STATIC_FOLDER_LOCATION: &str = "./assets/static";
+const DEFAULT_CONTENT_FOLDER: &str = "../notes";
+const DEFAULT_OUTPUT_FOLDER: &str = "./output/";
+const DEFAULT_TEMPLATE_FOLDER: &str = "./assets/templates";
+const DEFAULT_STATIC_FOLDER: &str = "./assets/static";
 
 fn main() -> Result<()> {
     print!(
@@ -47,27 +46,15 @@ fn main() -> Result<()> {
     colog::init();
 
     log::info!("=== Parsing arguments. ===");
-    let parsed_arguments = parse_arguments();
-    let content_folder_location = parsed_arguments
-        .0
-        .unwrap_or(DEFAULT_CONTENT_FOLDER_LOCATION.to_string());
-    let template_folder_location = parsed_arguments
-        .1
-        .unwrap_or(DEFAULT_TEMPLATE_FOLDER_LOCATION.to_string());
-    let output_folder_location = parsed_arguments
-        .2
-        .unwrap_or(DEFAULT_OUTPUT_FOLDER_LOCATION.to_string());
-    let static_folder_location = parsed_arguments
-        .3
-        .unwrap_or(DEFAULT_STATIC_FOLDER_LOCATION.to_string());
+    let args = Args::parse_arguments();
 
     println!();
 
     log::info!(
         "=== Starting to load content from {}. ===",
-        &content_folder_location
+        &args.content_folder
     );
-    let post_notes = load_content(&content_folder_location).context("Failed to laod content")?;
+    let post_notes = load_content(&args.content_folder).context("Failed to load content")?;
 
     println!();
 
@@ -85,63 +72,57 @@ fn main() -> Result<()> {
     println!();
 
     log::info!("=== Starting to build website. ===");
-    Builder::new(
-        post_notes,
-        content_map,
-        navigation,
-        &content_folder_location,
-        &output_folder_location,
-        &template_folder_location,
-        &static_folder_location,
-    )?
-    .build()?;
+    Builder::new(&post_notes, content_map, navigation, &args)?.build()?;
 
     Ok(())
 }
 
-// TODO: The function signature should be more clear (typed return value)
-fn parse_arguments() -> (
-    Option<String>,
-    Option<String>,
-    Option<String>,
-    Option<String>,
-) {
-    let mut output_folder_location = None;
-    let mut content_folder_location = None;
-    let mut template_folder_location = None;
-    let mut static_folder_location = None;
-
-    for arg in args() {
-        if let Some(value) = arg.strip_prefix("--output-folder-location=") {
-            output_folder_location = Some(value.to_string());
-            log::info!("Found argument: {}", &value);
-        } else if let Some(value) = arg.strip_prefix("--content-folder-location=") {
-            content_folder_location = Some(value.to_string());
-            log::info!("Found argument: {}", &value);
-        } else if let Some(value) = arg.strip_prefix("--template-folder-location=") {
-            template_folder_location = Some(value.to_string());
-            log::info!("Found argument: {}", &value);
-        } else if let Some(value) = arg.strip_prefix("--static-folder-location=") {
-            static_folder_location = Some(value.to_string());
-            log::info!("Found argument: {}", &value);
-        }
-    }
-
-    (
-        content_folder_location,
-        template_folder_location,
-        output_folder_location,
-        static_folder_location,
-    )
+pub struct Args {
+    output_folder: String,
+    content_folder: String,
+    template_folder: String,
+    static_folder: String,
 }
 
-fn load_content(location: &str) -> Result<Vec<PostNote>> {
+impl Args {
+    fn parse_arguments() -> Self {
+        let mut output_folder = None;
+        let mut content_folder = None;
+        let mut template_folder = None;
+        let mut static_folder = None;
+
+        for arg in std::env::args() {
+            if let Some(value) = arg.strip_prefix("--output-folder=") {
+                output_folder = Some(value.to_string());
+                log::info!("Found output folder argument: {}", value);
+            } else if let Some(value) = arg.strip_prefix("--content-folder=") {
+                content_folder = Some(value.to_string());
+                log::info!("Found content folder argument: {}", value);
+            } else if let Some(value) = arg.strip_prefix("--template-folder=") {
+                template_folder = Some(value.to_string());
+                log::info!("Found template folder argument: {}", value);
+            } else if let Some(value) = arg.strip_prefix("--static-folder=") {
+                static_folder = Some(value.to_string());
+                log::info!("Found static folder argument: {}", value);
+            }
+        }
+
+        Self {
+            output_folder: output_folder.unwrap_or_else(|| DEFAULT_OUTPUT_FOLDER.to_string()),
+            content_folder: content_folder.unwrap_or_else(|| DEFAULT_CONTENT_FOLDER.to_string()),
+            template_folder: template_folder.unwrap_or_else(|| DEFAULT_TEMPLATE_FOLDER.to_string()),
+            static_folder: static_folder.unwrap_or_else(|| DEFAULT_STATIC_FOLDER.to_string()),
+        }
+    }
+}
+
+fn load_content(location: &str) -> Result<Vec<Box<PostNote>>> {
     Ok(fs::read_dir(location)?
         .par_bridge()
         .filter_map(|entry_result| match entry_result {
             Ok(entry) => Some(entry.path()),
             Err(err) => {
-                log::error!("Could get derectory entry: {}", err);
+                log::error!("Could get directory entry: {}", err);
                 return None;
             }
         })
@@ -168,8 +149,8 @@ fn load_content(location: &str) -> Result<Vec<PostNote>> {
             Some((path_buf, raw_content))
         })
         .filter_map(|(path_buf, raw_md)| {
-            let post_note_visibility = match PostNoteEntry::new(&path_buf, &raw_md) {
-                Ok(post_note_visibility) => post_note_visibility,
+            let post_note_entry = match PostNoteEntry::new(&path_buf, &raw_md) {
+                Ok(post_note_entry) => post_note_entry,
                 Err(err) => {
                     log::error!(
                         "Something went wrong while parsing post note {:?}: {}",
@@ -180,7 +161,7 @@ fn load_content(location: &str) -> Result<Vec<PostNote>> {
                 }
             };
 
-            let post_note = match post_note_visibility {
+            let post_note = match post_note_entry {
                 PostNoteEntry::Public(post_note) => post_note,
                 PostNoteEntry::Private => {
                     log::info!("Skipping private note: {:?}", &path_buf);
