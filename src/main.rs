@@ -72,7 +72,7 @@ fn main() -> Result<()> {
     println!();
 
     log::info!("=== Starting to build website. ===");
-    Builder::new(post_notes, content_map, navigation, &args)?.build()?;
+    Builder::new(&post_notes, content_map, navigation, &args)?.build()?;
 
     Ok(())
 }
@@ -116,13 +116,13 @@ impl Args {
     }
 }
 
-fn load_content(location: &str) -> Result<Vec<PostNote>> {
+fn load_content(location: &str) -> Result<Vec<Box<PostNote>>> {
     Ok(fs::read_dir(location)?
         .par_bridge()
         .filter_map(|entry_result| match entry_result {
             Ok(entry) => Some(entry.path()),
             Err(err) => {
-                log::error!("Could get derectory entry: {}", err);
+                log::error!("Could get directory entry: {}", err);
                 return None;
             }
         })
@@ -149,8 +149,8 @@ fn load_content(location: &str) -> Result<Vec<PostNote>> {
             Some((path_buf, raw_content))
         })
         .filter_map(|(path_buf, raw_md)| {
-            let post_note_visibility = match PostNoteEntry::new(&path_buf, &raw_md) {
-                Ok(post_note_visibility) => post_note_visibility,
+            let post_note_entry = match PostNoteEntry::new(&path_buf, &raw_md) {
+                Ok(post_note_entry) => post_note_entry,
                 Err(err) => {
                     log::error!(
                         "Something went wrong while parsing post note {:?}: {}",
@@ -161,7 +161,7 @@ fn load_content(location: &str) -> Result<Vec<PostNote>> {
                 }
             };
 
-            let post_note = match post_note_visibility {
+            let post_note = match post_note_entry {
                 PostNoteEntry::Public(post_note) => post_note,
                 PostNoteEntry::Private => {
                     log::info!("Skipping private note: {:?}", &path_buf);

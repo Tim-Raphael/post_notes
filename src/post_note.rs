@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::ops::Deref;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Properties {
@@ -157,7 +158,7 @@ impl PostNote {
 }
 
 pub enum PostNoteEntry {
-    Public(PostNote),
+    Public(Box<PostNote>),
     Private,
 }
 
@@ -215,9 +216,9 @@ impl PostNoteEntry {
 
         let html = Html::try_from(html_buf)?;
 
-        Ok(Self::Public(PostNote::new(
+        Ok(Self::Public(Box::new(PostNote::new(
             file_name, properties, links, media, html,
-        )))
+        ))))
     }
 
     // This is probably going to be a temporary solution.

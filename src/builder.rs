@@ -10,20 +10,20 @@ use crate::content_map::ContentMap;
 use crate::navigation::Navigation;
 use crate::post_note::PostNote;
 
-pub struct Builder {
-    notes: Vec<PostNote>,
+pub struct Builder<'a> {
+    notes: Vec<Box<PostNote>>,
     navigation: Navigation,
-    content_map: ContentMap,
+    content_map: ContentMap<'a>,
     tera: Tera,
     content_path: PathBuf,
     output_path: PathBuf,
     static_path: PathBuf,
 }
 
-impl Builder {
+impl<'a> Builder<'a> {
     pub fn new(
-        notes: Vec<PostNote>,
-        content_map: ContentMap,
+        notes: &Vec<Box<PostNote>>,
+        content_map: ContentMap<'a>,
         navigation: Navigation,
         args: &Args,
     ) -> anyhow::Result<Self> {
