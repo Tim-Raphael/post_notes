@@ -72,7 +72,7 @@ fn main() -> Result<()> {
     println!();
 
     log::info!("=== Starting to build website. ===");
-    Builder::new(post_notes, content_map, navigation, args)?.build()?;
+    Builder::new(post_notes, content_map, navigation, &args)?.build()?;
 
     Ok(())
 }
