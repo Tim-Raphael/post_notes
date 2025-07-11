@@ -33,8 +33,8 @@ pub struct Navigation {
     pub root: TagNode,
 }
 
-impl From<&Vec<Box<PostNote>>> for Navigation {
-    fn from(notes: &Vec<Box<PostNote>>) -> Self {
+impl From<&Vec<PostNote>> for Navigation {
+    fn from(notes: &Vec<PostNote>) -> Self {
         let mut root = TagNode::default();
 
         for note in notes {

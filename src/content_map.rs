@@ -23,8 +23,8 @@ impl<'a> From<&'a Properties> for SearchProperties<'a> {
 #[derive(Debug, Clone, Serialize)]
 pub struct ContentMap<'a>(HashMap<&'a InternalLink, SearchProperties<'a>>);
 
-impl<'a> From<&'a Vec<Box<PostNote>>> for ContentMap<'a> {
-    fn from(post_notes: &'a Vec<Box<PostNote>>) -> Self {
+impl<'a> From<&'a Vec<PostNote>> for ContentMap<'a> {
+    fn from(post_notes: &'a Vec<PostNote>) -> Self {
         let mut search_props = HashMap::new();
 
         for note in post_notes.iter() {
