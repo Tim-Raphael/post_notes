@@ -7,7 +7,7 @@ mod content_map;
 mod navigation;
 mod post_note;
 
-use builder::Builder;
+use builder::build;
 use content_map::ContentMap;
 use navigation::Navigation;
 use post_note::{PostNote, PostNoteEntry};
@@ -72,7 +72,7 @@ fn main() -> Result<()> {
     println!();
 
     log::info!("=== Starting to build website. ===");
-    Builder::new(&post_notes, content_map, navigation, &args)?.build()?;
+    build(&post_notes, content_map, navigation, &args)?;
 
     Ok(())
 }
@@ -116,7 +116,7 @@ impl Args {
     }
 }
 
-fn load_content(location: &str) -> Result<Vec<Box<PostNote>>> {
+fn load_content(location: &str) -> Result<Vec<PostNote>> {
     Ok(fs::read_dir(location)?
         .par_bridge()
         .filter_map(|entry_result| match entry_result {

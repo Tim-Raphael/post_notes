@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::ops::Deref;
 use std::path::PathBuf;
-use std::sync::Arc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Properties {
@@ -158,7 +157,7 @@ impl PostNote {
 }
 
 pub enum PostNoteEntry {
-    Public(Box<PostNote>),
+    Public(PostNote),
     Private,
 }
 
@@ -191,7 +190,7 @@ impl PostNoteEntry {
                     let raw_yml = raw_front_matter.replace("---", "").replace("\\n", "");
                     let front_matter: Properties = serde_yaml::from_str(&raw_yml)?;
 
-                    if front_matter.public == false {
+                    if !front_matter.public {
                         return Ok(Self::Private);
                     }
 
@@ -216,9 +215,9 @@ impl PostNoteEntry {
 
         let html = Html::try_from(html_buf)?;
 
-        Ok(Self::Public(Box::new(PostNote::new(
+        Ok(Self::Public(PostNote::new(
             file_name, properties, links, media, html,
-        ))))
+        )))
     }
 
     // This is probably going to be a temporary solution.
