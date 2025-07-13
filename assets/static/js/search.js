@@ -181,7 +181,7 @@ function initSearch(map, input, output, preview, container) {
         if (!preview) throw new Error("Missing element #search-preview");
 
         const container = document.getElementById("search-container");
-        if (!container) throw new Error("Missing element #search-contianer");
+        if (!container) throw new Error("Missing element #search-container");
 
         const searchModule = new Module("search", () => {
             initSearch(map, input, output, preview, container);
