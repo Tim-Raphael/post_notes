@@ -212,11 +212,12 @@ impl PostNoteEntry {
                             let borrowed = first_child.data.borrow();
                             if let NodeValue::Text(ref text) = borrowed.value {
                                 if text == "Questions" {
-                                    let mut next_sibling = node.next_sibling();
+                                    if let Some(next_sibling_node) = node.next_sibling() {
+                                        let mut cur = next_sibling_node;
 
-                                    while let Some(sibling) = next_sibling {
-                                        next_sibling = sibling.next_sibling();
-                                        sibling.detach();
+                                        while let Some(sibling) = cur {
+                                            cur = sibling.next_sibling();
+                                        }
                                     }
 
                                     if let Some(previous_sibling) = node.previous_sibling() {
@@ -247,6 +248,21 @@ impl PostNoteEntry {
             file_name, properties, links, media, html,
         )))
     }
+}
+
+fn detach_subtree(node: &AstNode<'_>) {
+    let mut cur = node.first_child();
+
+    while let Some(child) = cur {
+        cur = child.next_sibling();
+        detach_subtree(child);
+    }
+
+    node.detach();
+}
+
+fn clip_following_nodes(node: &AstNode<'_>) {
+    detach_subtree(node);
 }
 
 // This is probably going to be a temporary solution.
