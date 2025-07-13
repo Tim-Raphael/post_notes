@@ -26,7 +26,7 @@ function initControls() {
     moduleRegistry.bindHold("k", () => startScroll(-50), stopScroll);
 }
 
-(function() {
-    const controlModule = new Module("CONTROLS", initControls);
+(() => {
+    const controlModule = new Module("controls", initControls);
     moduleRegistry.register(controlModule);
 })();

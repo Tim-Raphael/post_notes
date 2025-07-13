@@ -166,7 +166,7 @@ function initSearch(map, input, output, preview, container) {
     });
 }
 
-(async function() {
+(async () => {
     try {
         const response = await fetch("/output/map.json");
         const map = await response.json();
@@ -183,7 +183,7 @@ function initSearch(map, input, output, preview, container) {
         const container = document.getElementById("search-container");
         if (!container) throw new Error("Missing element #search-contianer");
 
-        const searchModule = new Module("SEARCH", () => {
+        const searchModule = new Module("search", () => {
             initSearch(map, input, output, preview, container);
         });
 
