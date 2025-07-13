@@ -175,6 +175,7 @@ impl PostNoteEntry {
         let mut options = Options::default();
 
         options.extension.table = true;
+        options.extension.math_dollars = true;
         options.extension.wikilinks_title_after_pipe = true;
         options.extension.front_matter_delimiter = Some("---".to_owned());
 

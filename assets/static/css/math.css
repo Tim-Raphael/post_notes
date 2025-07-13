@@ -1,0 +1,15 @@
+span[data-math-style],
+span[data-math-style] * {
+    color: var(--color-base7);
+}
+
+span[data-math-style]:before,
+span[data-math-style] *:before,
+span[data-math-style]:after,
+span[data-math-style] *:after {
+    content: none;
+}
+
+span[data-math-style] span.eqn-num {
+    display: none !important;
+}

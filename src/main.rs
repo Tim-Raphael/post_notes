@@ -72,7 +72,7 @@ fn main() -> Result<()> {
     println!();
 
     log::info!("=== Starting to build website. ===");
-    build(&post_notes, content_map, navigation, &args)?;
+    build(&post_notes, content_map, navigation, &args).context("Failed to build website")?;
 
     Ok(())
 }
