@@ -11,7 +11,6 @@ function initMathSyntax() {
         katex.render(element.textContent, element, { throwOnError: false });
     });
 
-
     display.forEach((element) => {
         katex.render(element.textContent, element, {
             displayMode: true,
@@ -21,6 +20,6 @@ function initMathSyntax() {
 }
 
 (() => {
-    const controlModule = new Module("math-syntax", initMathSyntax);
-    moduleRegistry.register(controlModule);
+    const mathSyntaxModule = new Module("math-syntax", initMathSyntax);
+    moduleRegistry.register(mathSyntaxModule);
 })();
