@@ -58,12 +58,14 @@
             {{ note.html_content | safe }}
         </article>
 
-        {% include "partials/search.html" %}
-        {% include "partials/controls.html" %}
-        {% include "partials/math-syntax.html" %}
     </main>
 
     {% include "partials/footer.html" %}
+
+    {% include "partials/search.html" %}
+    {% include "partials/controls.html" %}
+    {% include "partials/math-syntax.html" %}
+    {% include "partials/link-preview.html" %}
 </body>
 
 </html>
