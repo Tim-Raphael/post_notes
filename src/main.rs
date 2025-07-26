@@ -94,16 +94,16 @@ impl Args {
         for arg in std::env::args() {
             if let Some(value) = arg.strip_prefix("--output-folder=") {
                 output_folder = Some(value.to_string());
-                log::info!("Found output folder argument: {}", value);
+                log::info!("Found output folder argument: {value}");
             } else if let Some(value) = arg.strip_prefix("--content-folder=") {
                 content_folder = Some(value.to_string());
-                log::info!("Found content folder argument: {}", value);
+                log::info!("Found content folder argument: {value}");
             } else if let Some(value) = arg.strip_prefix("--template-folder=") {
                 template_folder = Some(value.to_string());
-                log::info!("Found template folder argument: {}", value);
+                log::info!("Found template folder argument: {value}");
             } else if let Some(value) = arg.strip_prefix("--static-folder=") {
                 static_folder = Some(value.to_string());
-                log::info!("Found static folder argument: {}", value);
+                log::info!("Found static folder argument: {value}");
             }
         }
 
@@ -122,8 +122,8 @@ fn load_content(location: &str) -> Result<Vec<PostNote>> {
         .filter_map(|entry_result| match entry_result {
             Ok(entry) => Some(entry.path()),
             Err(err) => {
-                log::error!("Could get directory entry: {}", err);
-                return None;
+                log::error!("Could get directory entry: {err}");
+                None
             }
         })
         .filter(|path_buf| {
