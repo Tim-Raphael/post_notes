@@ -1,0 +1,6 @@
+.preview {
+	position: fixed;
+	max-width: 400px;
+	transform: translateY(-100%);
+	z-index: 100;
+}
