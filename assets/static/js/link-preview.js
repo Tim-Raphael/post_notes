@@ -11,8 +11,9 @@ function createOrUseContainer(link, preview) {
 	container.classList.add("container");
 	container.id = `hover-${link}`;
 	container.innerHTML = `
+				<span>${link}</span>
 				<div class="h1">${preview.title}</div>
-				<p>${preview.description}<p>
+				<p>${preview.description}</p>
 			`;
 
 	document.body.append(container);
