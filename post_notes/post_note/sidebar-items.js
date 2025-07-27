@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["PostNoteEntry"],"struct":["Html","InternalLink","MediaLink","PostNote","Properties","Tag"]};
+window.SIDEBAR_ITEMS = {"enum":["PostNoteEntry"],"fn":["pre_process_media_wikilinks"],"struct":["Html","InternalLink","MediaLink","PostNote","Properties","Tag"]};

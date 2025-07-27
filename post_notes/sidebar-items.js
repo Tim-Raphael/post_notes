@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["DEFAULT_CONTENT_FOLDER_LOCATION","DEFAULT_OUTPUT_FOLDER_LOCATION","DEFAULT_STATIC_FOLDER_LOCATION","DEFAULT_TEMPLATE_FOLDER_LOCATION"],"fn":["load_content","main","parse_arguments"],"mod":["builder","content_map","navigation","post_note"]};
+window.SIDEBAR_ITEMS = {"constant":["DEFAULT_CONTENT_FOLDER","DEFAULT_OUTPUT_FOLDER","DEFAULT_STATIC_FOLDER","DEFAULT_TEMPLATE_FOLDER"],"fn":["load_content","main"],"mod":["builder","content_map","navigation","post_note"],"struct":["Args"]};
