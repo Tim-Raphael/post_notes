@@ -58,7 +58,7 @@ function initLinkPreview(map) {
 
 (async () => {
 	try {
-		const response = await fetch("/output/map.json");
+		const response = await fetch("./map.json");
 		const map = await response.json();
 
 		const linkPreviewModule = new Module("link-preview", () => {
