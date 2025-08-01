@@ -8,21 +8,18 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository (with submodules)
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
-      - name: Build the project
+      - name: Build binary
         run: cargo build --release
       - name: Bundle binary with assets
         run: |
           mkdir -p release_bundle
-          git submodule update --recursive --remote
           cp target/release/post_notes release_bundle/
           cp -r assets release_bundle/
           tar -czf post_notes_bundle.tar.gz -C release_bundle .
