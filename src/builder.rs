@@ -95,7 +95,7 @@ fn copy_media_files(notes: &Vec<PostNote>, src: &Path, destination: &Path) -> an
     notes.par_iter().for_each(|note| {
         note.media_links.par_iter().for_each(|media_link| {
             let media_path = PathBuf::from(media_link.to_string());
-            let output_media_path = PathBuf::from(media_link.to_string().replace(" ", "%20"));
+            let output_media_path = PathBuf::from(media_link.to_string());
 
             if let Some(parent) = media_path.parent()
                 && let Err(err) = fs::create_dir_all(destination.join(parent))
