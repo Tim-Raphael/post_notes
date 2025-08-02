@@ -65,6 +65,18 @@ impl From<&Vec<PostNote>> for Navigation {
             }
         }
 
+        sort_node(&mut root);
+
         Navigation { root }
+    }
+}
+
+fn sort_node(node: &mut TagNode) {
+    let mut sorted_children: Vec<_> = node.child_tags.drain().collect();
+    sorted_children.sort_by(|a, b| a.0.cmp(&b.0));
+    node.child_tags = sorted_children.into_iter().collect();
+
+    for child_node in node.child_tags.values_mut() {
+        sort_node(child_node);
     }
 }
