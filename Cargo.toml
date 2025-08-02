@@ -5,14 +5,14 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-regex = "1.11"
-colog = "1.3"
-log = "0.4.0"
-serde_json = "1"
-comrak = "0.40"
-tera = "1"
-rayon = "1"
-anyhow = "1"
-serde = { version = "1", features = ["derive"] }
-serde_yaml = "0.9"
-derive_more = { version = "2", features = ["display"] }
+regex = "1.11.1"
+colog = "1.3.0"
+log = "0.4.27"
+serde_json = "1.0.142"
+comrak = "0.40.0"
+tera = "1.20.0"
+rayon = "1.10.0"
+anyhow = "1.0.98"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_yaml = "0.9.34"
+derive_more = { version = "2.0.1", features = ["display"] }
