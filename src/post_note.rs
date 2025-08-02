@@ -1,11 +1,11 @@
 use anyhow::{Context, Result};
-use comrak::nodes::{AstNode, NodeValue};
+use comrak::nodes::NodeValue;
 use comrak::{Arena, Options, format_html, parse_document};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::ops::Deref;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Properties {
@@ -88,7 +88,7 @@ impl TryFrom<PathBuf> for InternalLink {
 impl From<String> for InternalLink {
     fn from(link: String) -> Self {
         let (path_part, rest) = link
-            .split_once(|c| c == '#' || c == '?')
+            .split_once(['#', '?'])
             .map(|(head, _tail)| (head, &link[head.len()..]))
             .unwrap_or((&link[..], ""));
 
@@ -157,12 +157,12 @@ impl PostNote {
 }
 
 pub enum PostNoteEntry {
-    Public(PostNote),
+    Public(Box<PostNote>),
     Private,
 }
 
 impl PostNoteEntry {
-    pub fn new(file_name: &PathBuf, raw_md: &str) -> Result<PostNoteEntry> {
+    pub fn new(file_name: &Path, raw_md: &str) -> Result<PostNoteEntry> {
         let (pre_processed_raw_md, media) = match pre_process_media_wikilinks(raw_md) {
             Ok((md, media)) => (md, media),
             Err(err) => {
@@ -181,7 +181,7 @@ impl PostNoteEntry {
 
         let root = parse_document(&arena, &pre_processed_raw_md, &options);
 
-        let file_name = InternalLink::try_from(file_name.clone())?;
+        let file_name = InternalLink::try_from(file_name.to_path_buf())?;
         let mut maybe_properties: Option<Properties> = Option::None;
         let mut links: Vec<InternalLink> = Vec::new();
 
@@ -207,27 +207,27 @@ impl PostNoteEntry {
                 // Clip everything that comes after `## Questions`. This is done because I'm to
                 // busy to think of a propper way to render my anki cards.
                 NodeValue::Heading(heading) => {
-                    if heading.level == 2 {
-                        if let Some(first_child) = node.first_child() {
-                            let borrowed = first_child.data.borrow();
-                            if let NodeValue::Text(ref text) = borrowed.value {
-                                if text == "Questions" {
-                                    let mut next_sibling = node.next_sibling();
+                    if heading.level == 2
+                        && let Some(first_child) = node.first_child()
+                    {
+                        let borrowed = first_child.data.borrow();
+                        if let NodeValue::Text(ref text) = borrowed.value
+                            && text == "Questions"
+                        {
+                            let mut next_sibling = node.next_sibling();
 
-                                    while let Some(sibling) = next_sibling {
-                                        next_sibling = sibling.next_sibling();
-                                        sibling.detach();
-                                    }
-
-                                    if let Some(previous_sibling) = node.previous_sibling() {
-                                        previous_sibling.detach();
-                                    }
-
-                                    node.detach();
-
-                                    break;
-                                }
+                            while let Some(sibling) = next_sibling {
+                                next_sibling = sibling.next_sibling();
+                                sibling.detach();
                             }
+
+                            if let Some(previous_sibling) = node.previous_sibling() {
+                                previous_sibling.detach();
+                            }
+
+                            node.detach();
+
+                            break;
                         }
                     }
                 }
@@ -243,9 +243,9 @@ impl PostNoteEntry {
 
         let html = Html::try_from(html_buf)?;
 
-        Ok(Self::Public(PostNote::new(
+        Ok(Self::Public(Box::new(PostNote::new(
             file_name, properties, links, media, html,
-        )))
+        ))))
     }
 }
 

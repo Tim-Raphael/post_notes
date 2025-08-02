@@ -73,7 +73,7 @@ fn render_notes(
 }
 
 fn copy_static_dir(src: &Path, destination: &Path) -> io::Result<()> {
-    fs::create_dir_all(&destination)?;
+    fs::create_dir_all(destination)?;
 
     for entry in fs::read_dir(src)? {
         let entry = entry?;
@@ -82,7 +82,7 @@ fn copy_static_dir(src: &Path, destination: &Path) -> io::Result<()> {
         if file_type.is_dir() {
             copy_static_dir(&entry.path(), &destination.join(entry.file_name()))?;
         } else {
-            fs::copy(entry.path(), &destination.join(entry.file_name()))?;
+            fs::copy(entry.path(), destination.join(entry.file_name()))?;
         }
     }
 
@@ -90,23 +90,21 @@ fn copy_static_dir(src: &Path, destination: &Path) -> io::Result<()> {
 }
 
 fn copy_media_files(notes: &Vec<PostNote>, src: &Path, destination: &Path) -> anyhow::Result<()> {
-    fs::create_dir_all(&destination)?;
+    fs::create_dir_all(destination)?;
 
     notes.par_iter().for_each(|note| {
         note.media_links.par_iter().for_each(|media_link| {
             let media_path = PathBuf::from(media_link.to_string());
             let output_media_path = PathBuf::from(media_link.to_string().replace(" ", "%20"));
 
-            if let Some(parent) = media_path.parent() {
-                if let Err(err) = fs::create_dir_all(&destination.join(parent)) {
-                    log::warn!("Could not create parent directory: {}", err);
-                };
-            }
+            if let Some(parent) = media_path.parent()
+                && let Err(err) = fs::create_dir_all(destination.join(parent))
+            {
+                log::warn!("Could not create parent directory: {}", err);
+            };
 
-            if let Err(err) = fs::copy(
-                &src.join(&media_path),
-                &destination.join(&output_media_path),
-            ) {
+            if let Err(err) = fs::copy(src.join(&media_path), destination.join(&output_media_path))
+            {
                 log::warn!(
                     "Could not copy file {:?} into output directory: {}",
                     &src.join(&media_path),
