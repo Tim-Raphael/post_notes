@@ -171,7 +171,7 @@ fn load_content(location: &str) -> Result<Vec<PostNote>> {
 
             log::info!("Loaded public note: {:?}", &path_buf);
 
-            Some(post_note)
+            Some(*post_note)
         })
         .collect())
 }

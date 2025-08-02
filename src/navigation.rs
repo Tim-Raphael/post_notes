@@ -61,11 +61,7 @@ impl From<&Vec<PostNote>> for Navigation {
 
                 current_node.files.insert(note.file_name.clone());
 
-                log::info!(
-                    "Inserted {} under the tag {}",
-                    note.file_name.to_string(),
-                    tag.to_string()
-                );
+                log::info!("Inserted {} under the tag {}", &*note.file_name, &**tag);
             }
         }
 
