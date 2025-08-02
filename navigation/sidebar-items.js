@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Navigation","TagNode"]};
+window.SIDEBAR_ITEMS = {"fn":["sort_node"],"struct":["Navigation","TagNode"]};
