@@ -76,6 +76,10 @@ fn sort_node(node: &mut TagNode) {
     sorted_children.sort_by(|a, b| a.0.cmp(&b.0));
     node.child_tags = sorted_children.into_iter().collect();
 
+    let mut sorted_files: Vec<_> = node.files.drain().collect();
+    sorted_files.sort();
+    node.files = sorted_files.into_iter().collect();
+
     for child_node in node.child_tags.values_mut() {
         sort_node(child_node);
     }
