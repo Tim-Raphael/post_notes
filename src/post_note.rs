@@ -66,7 +66,7 @@ impl Deref for Html {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct InternalLink(String);
 
 impl TryFrom<PathBuf> for InternalLink {

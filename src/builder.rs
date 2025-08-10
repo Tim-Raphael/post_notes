@@ -5,27 +5,24 @@ use std::{fs, io};
 use serde_json::json;
 use tera::{Context, Tera};
 
-use crate::Args;
 use crate::content_map::ContentMap;
 use crate::navigation::Navigation;
 use crate::post_note::PostNote;
+use crate::settings::Settings;
 
 pub fn build(
     notes: &Vec<PostNote>,
     content_map: ContentMap,
     navigation: Navigation,
-    args: &Args,
+    settings: &Settings,
 ) -> anyhow::Result<()> {
-    let tera = Tera::new(&format!("{}/**/*.html", &args.template_folder))?;
-    let content_path = PathBuf::from(&args.content_folder);
-    let output_path = PathBuf::from(&args.output_folder);
-    let static_path = PathBuf::from(&args.static_folder);
+    let tera = Tera::new(&format!("{}/**/*.html", &settings.path.template.display()))?;
 
-    fs::create_dir_all(&output_path)?;
-    copy_static_dir(&static_path, &output_path)?;
-    copy_media_files(notes, &content_path, &output_path)?;
-    write_content_map(content_map, &output_path)?;
-    render_notes(notes, &navigation, &tera, &output_path)?;
+    fs::create_dir_all(&settings.path.output)?;
+    copy_static_dir(&settings.path.asset, &settings.path.output)?;
+    copy_media_files(notes, &settings.path.input, &settings.path.output)?;
+    write_content_map(content_map, &settings.path.output)?;
+    render_notes(notes, &navigation, &tera, &settings.path.output)?;
 
     Ok(())
 }
