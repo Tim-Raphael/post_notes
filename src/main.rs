@@ -3,10 +3,10 @@ use rayon::prelude::*;
 use std::fs;
 
 mod builder;
-mod config;
 mod content_map;
 mod navigation;
 mod post_note;
+mod settings;
 
 use builder::build;
 use content_map::ContentMap;
