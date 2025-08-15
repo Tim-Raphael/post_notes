@@ -1,6 +1,8 @@
+use anyhow::Error;
 use clap::Parser;
 use config::{Config, File};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::default::Default;
 use std::{collections::HashSet, path::PathBuf};
 
@@ -41,6 +43,18 @@ struct Field {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 struct Schema(HashSet<Field>);
 
+impl Default for Schema {
+    fn default() -> Self {
+        let mut raw_schema = HashSet::new();
+        raw_schema.insert(Field {
+            name: "title".to_string(),
+            value_type: ValueType::String,
+            required: true,
+        });
+        Self(raw_schema)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 struct FrontMatterSettings {
     pub schema: Schema,
@@ -75,14 +89,19 @@ struct Settings {
 }
 
 pub fn load_settings() -> Settings {
+    read_settings().unwrap_or_else(|err| {
+        log::warn!("Could not read settings: {err}");
+        log::info!("Using default settings.");
+        return Settings::default();
+    })
+}
+
+fn read_settings() -> Result<Settings, Error> {
     let raw_settings = Config::builder()
         .add_source(File::with_name(CONFIG_PATH))
-        .build()
-        .unwrap_or(|err| {
-            log::error!("Something went wrong while parsing the settings: {err}");
-            log::info!("Using default settings.");
-            return Setting::default();
-        });
+        .build()?;
+
+    Ok(raw_settings.try_deserialize::<Settings>()?)
 }
 
 #[cfg(test)]
