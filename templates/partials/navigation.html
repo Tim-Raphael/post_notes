@@ -1,0 +1,38 @@
+{% macro render_navigation(tag) %}
+<li>
+    <label for="{{ tag.tag }}">{{ tag.tag }}</label>
+    <input id="{{ tag.tag }}" type="checkbox"></input>
+    <div>
+    {% if tag.files and tag.files | length > 0 %}
+    <ul>
+        {% for file_name in tag.files %}
+        <li>
+            <a href="./{{ file_name }}">{{ file_name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    {% endif %}
+    {% if tag.child_tags and tag.child_tags | length > 0 %}
+    <ul>
+        {% for child in tag.child_tags %}
+        {{ self::render_navigation(tag=child) }}
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <div>
+</li>
+{% endmacro %}
+
+<nav>
+    <span>navigation</span>
+    <span>Press "/" to search.</span><br>
+    <span>Press "j" or "k" to scroll down or up.</span><br>
+    <br>
+    <span>Click on the tags to expand them.</span><br>
+    <ul>
+        {% for child in navigation.root.child_tags %}
+        {{ self::render_navigation(tag=child) }}
+        {% endfor %}
+    </ul>
+</nav>

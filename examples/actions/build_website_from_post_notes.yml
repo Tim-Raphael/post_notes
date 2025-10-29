@@ -1,0 +1,55 @@
+name: Build Website from Post Notes
+on:
+  push:
+    branches: [main]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+      - name: Get latest release from post-notes
+        id: get_release
+        run: |
+          # Get the latest release info from GitHub API
+          RELEASE_INFO=$(curl -s "https://api.github.com/repos/Tim-Raphael/post-notes/releases/latest")
+          # Get release tag
+          RELEASE_TAG=$(echo "$RELEASE_INFO" | jq -r '.tag_name')
+          # Construct the download URL using the predictable pattern
+          DOWNLOAD_URL="https://github.com/Tim-Raphael/post-notes/releases/download/${RELEASE_TAG}/post-notes-bundle.tar.gz"
+          echo "download_url=$DOWNLOAD_URL" >> $GITHUB_OUTPUT
+          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+          echo "Found release: $RELEASE_TAG"
+          echo "Download URL: $DOWNLOAD_URL"
+      - name: Download and extract post-notes bundle
+        run: |
+          # Download the bundle
+          wget -O post-notes-bundle.tar.gz "${{ steps.get_release.outputs.download_url }}"
+          # Verify the download
+          ls -la post-notes-bundle.tar.gz
+          # Extract the bundle
+          tar -xzf post-notes-bundle.tar.gz
+          # Make the post-notes binary executable
+          chmod +x post-notes
+      - name: Build website using post-notes
+        run: |
+          # Run the post-notes binary to generate content
+          # The binary and assets are now available in the current directory
+          ./post-notes -i "./"
+      - name: Deploy to target repository
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          # Personal access token with repo permissions
+          personal_token: ${{ secrets.DEPLOY_TOKEN }}
+          # Target repository (replace with your actual repo)
+          external_repository: your-username/your-website-repo
+          # Branch to deploy to
+          publish_branch: main # or gh-pages
+          # Directory containing the built website
+          publish_dir: ./output
+          # Force use of custom commit message
+          enable_jekyll: false
+          # Commit message
+          commit_message: "Build website using post-notes ${{ steps.get_release.outputs.release_tag }}"
+          # Full commit message
+          full_commit_message: "Build website using post-notes ${{ steps.get_release.outputs.release_tag }}"

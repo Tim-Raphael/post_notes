@@ -1,0 +1,43 @@
+name: Build Release
+on:
+  push:
+    tags:
+      - 'v*'
+permissions:
+  contents: write
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - name: Build binary
+        run: cargo build --release
+      - name: Bundle binary with assets
+        run: |
+          mkdir -p release-bundle
+          cp target/release/post-notes release-bundle/
+          cp -r assets release-bundle/
+          cp -r templates release-bundle/
+          tar -czf post-notes-bundle.tar.gz -C release-bundle .
+      - name: Upload release bundle
+        uses: softprops/action-gh-release@v2
+        with:
+          files: post-notes-bundle.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build docs
+        run: |
+          cargo doc --no-deps --release
+          echo "<meta http-equiv=\"refresh\" content=\"0; url=post-notes\">" > target/doc/index.html
+      - name: Deploy docs to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./target/doc
+          publish_branch: gh-pages

@@ -1,0 +1,65 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g., 1.2.3)"
+        required: true
+        type: string
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: dev
+      - name: Validate version format
+        run: |
+          if ! [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version format. Use semver: x.y.z"
+            exit 1
+          fi
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Update Cargo.toml
+        run: |
+          sed -i 's/^version = .*/version = "${{ inputs.version }}"/' Cargo.toml
+      - name: Update Cargo.lock
+        run: |
+          cargo update --workspace
+      - name: Commit version update
+        run: |
+          git add Cargo.toml Cargo.lock
+          git commit -m "chore(release): v${{ inputs.version }}"
+      - name: Push to dev
+        run: git push origin dev
+      - name: Checkout main
+        run: git checkout main && git pull origin main
+      - name: Merge dev into main
+        run: |
+          git merge --no-ff dev -m "chore(release): v${{ inputs.version }}"
+      - name: Push to main
+        run: git push origin main
+      - name: Sync dev with main
+        run: |
+          git checkout dev
+          git merge main
+          git push origin dev
+      - name: Create tag
+        run: |
+          git tag -a "v${{ inputs.version }}" -m "Release version ${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ inputs.version }}
+          release_name: Release v${{ inputs.version }}
+          draft: false
+          prerelease: false

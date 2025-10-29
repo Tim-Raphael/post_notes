@@ -1,0 +1,10 @@
+.preview {
+	position: fixed;
+	max-width: 500px;
+	transform: translateY(calc(-100% - var(--gap-small)));
+	z-index: 100;
+}
+
+.preview > p:last-of-type {
+	margin-bottom: 0;
+}
