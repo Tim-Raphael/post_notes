@@ -1,0 +1,5 @@
+[path]
+input = "../notes"
+
+[front_matter]
+schema = [{ name = "field", value_type = "string", required = false }]
