@@ -1,0 +1,9 @@
+(function() {
+    var implementors = Object.fromEntries([["post_notes",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.91.0/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a> for <a class=\"struct\" href=\"post_notes/navigation/struct.RawTagNode.html\" title=\"struct post_notes::navigation::RawTagNode\">RawTagNode</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.91.0/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a> for <a class=\"struct\" href=\"post_notes/settings/struct.Args.html\" title=\"struct post_notes::settings::Args\">Args</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.91.0/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a> for <a class=\"struct\" href=\"post_notes/settings/struct.CliPathSettings.html\" title=\"struct post_notes::settings::CliPathSettings\">CliPathSettings</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.91.0/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a> for <a class=\"struct\" href=\"post_notes/settings/struct.PathSettings.html\" title=\"struct post_notes::settings::PathSettings\">PathSettings</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.91.0/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a> for <a class=\"struct\" href=\"post_notes/settings/struct.Settings.html\" title=\"struct post_notes::settings::Settings\">Settings</a>"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[1487]}

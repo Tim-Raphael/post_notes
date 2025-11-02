@@ -1,0 +1,1 @@
+rd_("jpost_notes")

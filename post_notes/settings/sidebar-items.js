@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["CONFIG_PATH","DEFAULT_ASSET_PATH","DEFAULT_INPUT_PATH","DEFAULT_OUTPUT_PATH","DEFAULT_TEMPLATE_PATH"],"fn":["get_settings","merge_settings"],"struct":["Args","CliPathSettings","PathSettings","Settings"]};
