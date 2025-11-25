@@ -10,16 +10,30 @@ use crate::navigation::Navigation;
 use crate::post_note::PostNote;
 use crate::settings::Settings;
 
+/// Builds the static site by rendering templates and copying assets.
+///
+/// Steps:
+/// - Initializes the Tera template engine with HTML templates
+/// - Creates the output directory structure
+/// - Copies all static asset directories to output
+/// - Copies media files referenced in notes
+/// - Writes the content map index
+/// - Renders all notes using templates
+///
+/// # Errors
+///
+/// Returns an error if template loading, directory creation, file copying, or rendering fails.
 pub fn build(
-    notes: &Vec<PostNote>,
+    notes: &[PostNote],
     content_map: ContentMap,
     navigation: Navigation,
     settings: &Settings,
 ) -> anyhow::Result<()> {
-    let tera = Tera::new(&format!("{}/**/*.html", &settings.path.template.display()))?;
-
-    fs::create_dir_all(&settings.path.output)?;
-    copy_static_dir(&settings.path.asset, &settings.path.output)?;
+    let template_pattern = format!("{}/**/*.html", settings.path.template.display());
+    let tera = Tera::new(&template_pattern)?;
+    for asset_path in &settings.path.assets {
+        copy_static_dir(asset_path, &settings.path.output)?;
+    }
     copy_media_files(notes, &settings.path.input, &settings.path.output)?;
     write_content_map(content_map, &settings.path.output)?;
     render_notes(notes, &navigation, &tera, &settings.path.output)?;
@@ -28,7 +42,7 @@ pub fn build(
 }
 
 fn render_notes(
-    notes: &Vec<PostNote>,
+    notes: &[PostNote],
     navigation: &Navigation,
     tera: &Tera,
     output_path: &Path,
@@ -69,37 +83,47 @@ fn render_notes(
     Ok(())
 }
 
-fn copy_static_dir(src: &Path, destination: &Path) -> io::Result<()> {
-    fs::create_dir_all(destination)?;
-
-    for entry in fs::read_dir(src)? {
+/// Recursively copies a directory tree from source to destination.
+///
+/// Creates the destination directory if it doesn't exist. For each entry in the source:
+/// - Directories are recursively copied
+/// - Files are copied directly
+///
+/// If destination already exists, contents are merged (existing files are overwritten).
+///
+/// # Errors
+///
+/// Returns an error if any filesystem operation fails (reading, creating directories, copying).
+fn copy_static_dir(from: &Path, to: &Path) -> io::Result<()> {
+    // Ensure the destination directory exists before copying contents.
+    fs::create_dir_all(to)?;
+    // Iterate through all entries in the source directory.
+    for entry in fs::read_dir(from)? {
         let entry = entry?;
-        let file_type = entry.file_type()?;
-
-        if file_type.is_dir() {
-            copy_static_dir(&entry.path(), &destination.join(entry.file_name()))?;
+        let from = entry.path();
+        let to = to.join(entry.file_name());
+        if entry.file_type()?.is_dir() {
+            // Recursively copy subdirectories.
+            copy_static_dir(&from, &to)?;
         } else {
-            fs::copy(entry.path(), destination.join(entry.file_name()))?;
+            fs::copy(&from, &to)?;
         }
     }
 
     Ok(())
 }
 
-fn copy_media_files(notes: &Vec<PostNote>, src: &Path, destination: &Path) -> anyhow::Result<()> {
+fn copy_media_files(notes: &[PostNote], src: &Path, destination: &Path) -> anyhow::Result<()> {
     fs::create_dir_all(destination)?;
-
     notes.par_iter().for_each(|note| {
         note.media_links.par_iter().for_each(|media_link| {
             let media_path = PathBuf::from(media_link.to_string());
             let output_media_path = PathBuf::from(media_link.to_string());
-
             if let Some(parent) = media_path.parent()
                 && let Err(err) = fs::create_dir_all(destination.join(parent))
             {
                 log::warn!("Could not create parent directory: {}", err);
             };
-
             if let Err(err) = fs::copy(src.join(&media_path), destination.join(&output_media_path))
             {
                 log::warn!(
