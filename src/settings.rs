@@ -22,8 +22,8 @@ pub struct PathSettings {
     pub output: PathBuf,
     /// Template directory path.
     pub template: PathBuf,
-    /// Asset directory path.
-    pub asset: PathBuf,
+    /// Asset directory paths.
+    pub assets: Vec<PathBuf>,
 }
 
 impl Default for PathSettings {
@@ -32,7 +32,7 @@ impl Default for PathSettings {
             input: PathBuf::from(DEFAULT_INPUT_PATH),
             output: PathBuf::from(DEFAULT_OUTPUT_PATH),
             template: PathBuf::from(DEFAULT_TEMPLATE_PATH),
-            asset: PathBuf::from(DEFAULT_ASSET_PATH),
+            assets: vec![PathBuf::from(DEFAULT_ASSET_PATH)],
         }
     }
 }
@@ -58,7 +58,8 @@ struct CliPathSettings {
     /// Asset directory path.
     #[arg(short, long)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub asset: Option<PathBuf>,
+    #[clap(short, long, value_parser, num_args = 1.., value_delimiter = ' ')]
+    pub assets: Option<Vec<PathBuf>>,
 }
 
 /// Configurable application settings which get derived from command line
@@ -97,6 +98,7 @@ fn merge_settings(
     if let Some(args) = args {
         raw_settings = raw_settings.add_source(args);
     };
+
     Ok(raw_settings.build()?.try_deserialize::<Settings>()?)
 }
 
@@ -131,6 +133,7 @@ pub fn get_settings() -> Settings {
     log::info!(
         "Could not load settings from config file or command line arguments, using default settings instead."
     );
+
     Settings::default()
 }
 
@@ -146,7 +149,7 @@ mod tests {
             path: PathSettings {
                 input: PathBuf::from("../notes"),
                 output: DEFAULT_OUTPUT_PATH.into(),
-                asset: DEFAULT_ASSET_PATH.into(),
+                assets: vec![DEFAULT_ASSET_PATH.into()],
                 template: DEFAULT_TEMPLATE_PATH.into(),
             },
         };
@@ -156,6 +159,7 @@ mod tests {
             .build()
             .unwrap();
         let produced = merge_settings(default_settings, Some(config_file), None).unwrap();
+
         assert_eq!(expected, produced);
     }
 
@@ -165,7 +169,7 @@ mod tests {
             path: PathSettings {
                 input: PathBuf::from("../notes"),
                 output: DEFAULT_OUTPUT_PATH.into(),
-                asset: DEFAULT_ASSET_PATH.into(),
+                assets: vec![DEFAULT_ASSET_PATH.into()],
                 template: DEFAULT_TEMPLATE_PATH.into(),
             },
         };
@@ -173,6 +177,7 @@ mod tests {
         let args = Args::try_parse_from(["post_notes", "-i", "../notes"]).unwrap();
         let config_args = Config::try_from(&args).unwrap();
         let produced = merge_settings(default_settings, None, Some(config_args)).unwrap();
+
         assert_eq!(expected, produced);
     }
 }
