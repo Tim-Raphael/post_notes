@@ -1,0 +1,34 @@
+{#
+    Recursive navigation item. Rendered as one `<li>` per tag node, with
+    the tag's own files inline and its child tags rendered by recursive
+    self-call. The `<label>`/`<input type="checkbox">` pair drives the
+    expand/collapse behaviour without JavaScript.
+
+    `tag` is untyped because it's a `TagNode` struct (see
+    `src/website/navigation.rs`) rather than one of Tera's primitive
+    types, and Tera 2 accepts untyped component parameters.
+#}
+{% component nav.item(tag) %}
+<li>
+    <label for="{{ tag.tag }}">{{ tag.tag }}</label>
+    <input id="{{ tag.tag }}" type="checkbox"></input>
+    <div>
+        {% if tag.files | length > 0 %}
+        <ul>
+            {% for file_name in tag.files %}
+            <li>
+                <a href="./{{ file_name }}">{{ file_name }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% if tag.child_tags | length > 0 %}
+        <ul>
+            {% for child in tag.child_tags %}
+            {{ <nav.item tag={child} /> }}
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</li>
+{% endcomponent nav.item %}

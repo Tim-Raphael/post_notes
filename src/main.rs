@@ -1,87 +1,33 @@
 use std::sync;
 
-use crate::notes::Provide as _;
-
-mod defaults;
-mod notes;
-mod settings;
-mod website;
+use post_notes::{Notes, Settings, website};
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 
 #[tokio::main]
 #[tracing::instrument(name = "main")]
-async fn main() {
-    tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::registry()
+        // TODO: used for debugging stuff
+        //.with(tracing_subscriber::fmt::Layer::default())
+        .with(tracing_scribe::ConsoleLayer::default())
         .init();
 
-    let settings = sync::Arc::new(settings::Provider::new());
-    let notes = notes::Provider::from(settings.clone());
+    let settings = sync::Arc::new(Settings::new());
 
-    let Ok(notes) = notes.sync().await else {
-        tracing::error!("Failed to sync notes");
-        return;
+    let notes = Notes::from(settings.clone());
+    let notes = match notes.sync().await {
+        Ok(notes) => notes,
+        Err(err) => {
+            tracing::error!(error = %err, "failed to sync notes");
+            return Err(anyhow::anyhow!("read phase failed"));
+        }
     };
 
-    dbg!(notes.notes());
-}
+    let website = website::build(notes.notes(), &settings)?;
 
-//fn main() -> Result<()> {
-//    print!(
-//        r#"
-//       .~@`,
-//      (__,  \
-//          \' \
-//           \  \
-//            \  \
-//             \  `._            __.__
-//              \    ~-._  _.==~~     ~~--.._
-//               \        '                  ~-.
-//                \      _-   -_                `.
-//                 \    /       )        .-    .  \
-//                  `. |      /  )      (       ;  \
-//                    `|     /  /       (       :   '\
-//                     \    |  /        |      /       \
-//                      |     /`-.______\.     |~-.      \
-//                      |   |/           (     |   `.      \_
-//                      |   ||            ~\   \      '._    `-.._____..----..___
-//                      |   |/             _\   \         ~-.__________.-~~~~~~~~~'''
-//      post_notes    .o'___/            .o______)
-//
-//
-//        "#
-//    );
-//
-//    colog::init();
-//
-//    log::info!("=== Loading Settings ===");
-//    let settings = get_settings();
-//
-//    println!();
-//
-//    log::info!(
-//        "=== Starting to load content from {}. ===",
-//        &settings.path.input.display()
-//    );
-//    let raw = fetch::notes(&settings.path.input).context("Failed to read content")?;
-//    let notes = map::notes(raw);
-//
-//    println!();
-//
-//    log::info!(
-//        "=== Starting to generate content map with {} entrie(s). ===",
-//        notes.len()
-//    );
-//    let content = map::content(&notes);
-//
-//    println!();
-//
-//    log::info!("=== Starting to generate navigation. ===");
-//    let nav = map::navigation(&notes);
-//
-//    println!();
-//
-//    log::info!("=== Starting to build website. ===");
-//    build::website(&notes, content, nav, &settings).context("Failed to build website")?;
-//
-//    Ok(())
-//}
+    let writer = website::FileSystemWriter::from_settings(&settings);
+    website::write(&website, &settings, &writer)?;
+
+    Ok(())
+}
