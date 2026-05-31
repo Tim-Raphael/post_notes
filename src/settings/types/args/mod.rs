@@ -18,5 +18,6 @@ pub struct Args {
     pub config: String,
     /// Path settings.
     #[command(flatten)]
+    #[serde(flatten)]
     pub path: Path,
 }

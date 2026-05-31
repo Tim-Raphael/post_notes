@@ -30,6 +30,5 @@ pub struct Path {
     /// Asset directory path.
     #[arg(short, long)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[clap(short, long, value_parser, num_args = 1.., value_delimiter = ' ')]
-    pub assets: Option<Vec<path::PathBuf>>,
+    pub assets: Option<path::PathBuf>,
 }

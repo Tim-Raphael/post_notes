@@ -64,7 +64,7 @@ impl Provider {
         }
 
         tracing::warn!(
-            "could not load settings from config file or command line arguments, using default settings instead"
+            "Could not load settings from config file or command line arguments, using default settings instead"
         );
 
         return Self {
