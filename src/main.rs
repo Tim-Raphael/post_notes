@@ -1,24 +1,28 @@
 use std::sync;
 
+use crate::notes::Provide as _;
+
 mod defaults;
 mod notes;
 mod settings;
 mod website;
 
 #[tokio::main]
+#[tracing::instrument(name = "main")]
 async fn main() {
-    let settings = sync::Arc::new(settings::Provider::new());
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .init();
 
-    // Translation
+    let settings = sync::Arc::new(settings::Provider::new());
     let notes = notes::Provider::from(settings.clone());
 
-    let Ok(notes) = notes
-        .sync()
-        .await
-        .inspect_err(|err| tracing::error!("could not sync notes: {err:?}"))
-    else {
+    let Ok(notes) = notes.sync().await else {
+        tracing::error!("Failed to sync notes");
         return;
     };
+
+    dbg!(notes.notes());
 }
 
 //fn main() -> Result<()> {

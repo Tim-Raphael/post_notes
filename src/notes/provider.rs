@@ -21,12 +21,12 @@ where
     _state: marker::PhantomData<State>,
 }
 
-#[derive(Debug, thiserror::Error)]
+// TODO: will be used to continuously watch directory
+#[derive(Debug)]
 pub struct SyncError<R>
 where
     R: notes::Read,
 {
-    #[source]
     source: io::Error,
     provider: Provider<R>,
 }
@@ -48,22 +48,25 @@ where
         let mut sync_err = None;
 
         {
-            let raw_notes = self.reader.raw_notes().await;
+            let raw_notes = self.reader.read().await;
             tokio::pin!(raw_notes);
 
             while let Some(raw_note) = raw_notes.next().await {
-                // If an error occours while reading a file abort, because we don't know if the
+                // If an error occurs while reading a file abort, because we don't know if the
                 // note would've been something we wanted to render.
                 let Ok(raw_note) = raw_note else {
+                    let err = raw_note.as_ref().unwrap_err();
+                    tracing::error!("Could not read note: {err}");
                     sync_err = Some(raw_note.unwrap_err());
                     break;
                 };
-                // If an error occours while parsing the note content we know that the note itself
-                // is invalid and can't be rendered.
+
+                // If an error occurs while parsing the note content we know that the note itself
+                // is invalid and probably can't be rendered anyway.
                 match notes::types::Note::try_from(raw_note) {
                     Ok(note) => notes.push(note),
                     Err(err) => {
-                        tracing::warn!("could not parse note: {err}")
+                        tracing::warn!("Could not parse note: {err}")
                     }
                 }
             }
