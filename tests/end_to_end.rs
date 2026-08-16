@@ -44,7 +44,7 @@ impl MockReader {
 }
 
 impl ReadNotes for MockReader {
-    async fn read_notes(&self) -> impl Stream<Item = std::io::Result<RawNote>> {
+    async fn read(&self, _input: &std::path::Path) -> impl Stream<Item = std::io::Result<RawNote>> {
         // Reverse the order on purpose to exercise the sort inside `Notes::sync`. If sorting is
         // dropped, snapshots diverge.
         let mut items: Vec<_> = self.notes.iter().cloned().map(Ok).rev().collect();
@@ -66,11 +66,15 @@ fn fixture_settings() -> Settings {
 async fn run_pipeline() -> std::collections::BTreeMap<PathBuf, Vec<u8>> {
     let settings = Arc::new(fixture_settings());
     let reader = MockReader::from_dir(&settings.input);
-    let notes = Notes::new(reader).sync().await.expect("sync notes");
+    let notes = Notes::new(reader)
+        .sync(&settings.input)
+        .await
+        .expect("sync notes");
     let website = website::build(notes.notes(), &settings).expect("build website");
-    let writer = InMemoryWriter::new();
-    website::write(&website, &settings, &writer).expect("write website");
-    writer.snapshot()
+    let published = website::Publisher::new(InMemoryWriter::new())
+        .write(&website, &settings)
+        .expect("write website");
+    published.writer().snapshot()
 }
 
 #[tokio::test]

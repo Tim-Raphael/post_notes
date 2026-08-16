@@ -1,2 +1,8 @@
 target/
 output/
+
+# direnv-generated cache
+.direnv/
+
+# generated from the flake by git-hooks.nix (contains machine-specific paths)
+.pre-commit-config.yaml

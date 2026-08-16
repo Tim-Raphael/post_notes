@@ -66,12 +66,11 @@ impl Settings {
             if let Ok(raw_settings) = raw_settings
                 .build()
                 .inspect_err(|err| tracing::error!("Could not build merged settings: {err}"))
-            {
-                if let Ok(settings) = raw_settings.try_deserialize::<Self>().inspect_err(|err| {
+                && let Ok(settings) = raw_settings.try_deserialize::<Self>().inspect_err(|err| {
                     tracing::error!("Could not deserialize merged settings: {err}")
-                }) {
-                    return settings;
-                }
+                })
+            {
+                return settings;
             }
         }
 

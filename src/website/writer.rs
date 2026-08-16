@@ -3,7 +3,6 @@
 //! [`WriteWebsite`] is the only trait the top-level pipeline speaks to when emitting the site.
 //! Tests can capture writes in memory via [`InMemoryWriter`]; production uses [`FileSystemWriter`].
 
-use anyhow::Context as _;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
@@ -126,65 +125,4 @@ impl WriteWebsite for InMemoryWriter {
             .push((from.to_path_buf(), to.to_path_buf()));
         Ok(())
     }
-}
-
-/// Emit a fully-built [`super::Website`] through some [`WriteWebsite`].
-///
-/// Order:
-/// 1. static asset directory (CSS/JS)
-/// 2. media referenced by notes (copied from the input directory)
-/// 3. `map.json` (search index)
-/// 4. `{slug}.html` per rendered page
-///
-/// Steps 3 and 4 are the only ones that produce artifacts; 1 and 2 use
-/// `copy_tree` so writers may implement them however they like.
-#[tracing::instrument(name = "website::write", skip_all)]
-pub fn write<W: WriteWebsite>(
-    website: &super::Website,
-    settings: &Settings,
-    writer: &W,
-) -> anyhow::Result<()> {
-    // Static assets.
-    writer
-        .copy_tree(&settings.assets, Path::new(""))
-        .context("copying static assets")?;
-
-    // Note media — copied from wherever it lives under the input dir.
-    for page in &website.pages {
-        for media in &page.media_links {
-            let rel = PathBuf::from(&**media);
-            let src = settings.input.join(&rel);
-            if let Some(parent) = rel.parent() {
-                writer
-                    .copy_tree(&settings.input.join(parent), parent)
-                    .with_context(|| format!("copying media parent {}", parent.display()))?;
-            }
-            // If the media file is a single file (common case), a full parent-tree copy already
-            // grabbed it. But if the media path has no parent, fall through to a single-file copy
-            // via an artifact write.
-            if rel.parent().is_none() && src.exists() {
-                let bytes =
-                    fs::read(&src).with_context(|| format!("reading media {}", src.display()))?;
-                writer.write_artifact(Artifact { path: rel, bytes })?;
-            }
-        }
-    }
-
-    // Search map.
-    let map_json =
-        serde_json::to_vec_pretty(website.content.as_map()).context("serializing content map")?;
-    writer.write_artifact(Artifact {
-        path: PathBuf::from("map.json"),
-        bytes: map_json,
-    })?;
-
-    // Rendered pages.
-    for page in &website.pages {
-        writer.write_artifact(Artifact {
-            path: PathBuf::from(&*page.link),
-            bytes: page.html.as_bytes().to_vec(),
-        })?;
-    }
-
-    Ok(())
 }

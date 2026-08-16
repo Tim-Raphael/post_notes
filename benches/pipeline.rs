@@ -40,7 +40,7 @@ impl MockReader {
 }
 
 impl ReadNotes for MockReader {
-    async fn read_notes(&self) -> impl Stream<Item = std::io::Result<RawNote>> {
+    async fn read(&self, _input: &std::path::Path) -> impl Stream<Item = std::io::Result<RawNote>> {
         let items: Vec<_> = self.notes.iter().cloned().map(Ok).collect();
         tokio_stream::iter(items)
     }
@@ -66,11 +66,15 @@ fn bench_pipeline(c: &mut Criterion) {
     c.bench_function("read_build_write_fixture", |b| {
         b.iter(|| {
             runtime.block_on(async {
-                let notes = Notes::new(reader.clone()).sync().await.expect("sync notes");
+                let notes = Notes::new(reader.clone())
+                    .sync(&settings.input)
+                    .await
+                    .expect("sync notes");
                 let website = website::build(notes.notes(), &settings).expect("build website");
-                let writer = InMemoryWriter::new();
-                website::write(&website, &settings, &writer).expect("write");
-                std::hint::black_box(writer.snapshot());
+                let published = website::Publisher::new(InMemoryWriter::new())
+                    .write(&website, &settings)
+                    .expect("write");
+                std::hint::black_box(published.writer().snapshot());
             });
         });
     });
